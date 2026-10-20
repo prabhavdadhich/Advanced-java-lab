@@ -1,0 +1,175 @@
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
+class CalculatorModel {
+
+    public double add(double a, double b) {
+        return a + b;
+    }
+
+    public double subtract(double a, double b) {
+        return a - b;
+    }
+
+    public double multiply(double a, double b) {
+        return a * b;
+    }
+
+    public double divide(double a, double b) {
+        if (b == 0) {
+            throw new ArithmeticException(
+                    "Division by zero is not allowed.");
+        }
+        return a / b;
+    }
+}
+
+class CalculatorView extends JFrame {
+
+    JTextField txtNum1 = new JTextField(15);
+    JTextField txtNum2 = new JTextField(15);
+    JTextField txtResult = new JTextField(15);
+
+    JButton btnAdd = new JButton("+");
+    JButton btnSub = new JButton("-");
+    JButton btnMul = new JButton("*");
+    JButton btnDiv = new JButton("/");
+
+    CalculatorView() {
+        setTitle("MVC Calculator");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(
+                BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        addRow(panel, gbc, 0, "First Number:", txtNum1);
+        addRow(panel, gbc, 1, "Second Number:", txtNum2);
+
+        JPanel buttons = new JPanel(new FlowLayout());
+        buttons.add(btnAdd);
+        buttons.add(btnSub);
+        buttons.add(btnMul);
+        buttons.add(btnDiv);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        panel.add(buttons, gbc);
+
+        txtResult.setEditable(false);
+        addRow(panel, gbc, 3, "Result:", txtResult);
+
+        add(panel);
+        pack();
+        setLocationRelativeTo(null);
+    }
+
+    private void addRow(JPanel panel,
+                        GridBagConstraints gbc,
+                        int row, String label,
+                        JTextField field) {
+        gbc.gridy = row;
+        gbc.gridwidth = 1;
+        gbc.gridx = 0;
+        panel.add(new JLabel(label), gbc);
+
+        gbc.gridx = 1;
+        panel.add(field, gbc);
+    }
+}
+
+class CalculatorController implements ActionListener {
+
+    CalculatorView view;
+    CalculatorModel model;
+
+    CalculatorController(CalculatorView view,
+                         CalculatorModel model) {
+        this.view = view;
+        this.model = model;
+
+        view.btnAdd.addActionListener(this);
+        view.btnSub.addActionListener(this);
+        view.btnMul.addActionListener(this);
+        view.btnDiv.addActionListener(this);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        try {
+            String n1 = view.txtNum1.getText().trim();
+            String n2 = view.txtNum2.getText().trim();
+
+            if (n1.isEmpty() || n2.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Please enter both numbers.");
+            }
+
+            double a = Double.parseDouble(n1);
+            double b = Double.parseDouble(n2);
+
+            if (!Double.isFinite(a) || !Double.isFinite(b)) {
+                throw new IllegalArgumentException(
+                        "Enter valid finite numbers.");
+            }
+
+            double result;
+
+            if (e.getSource() == view.btnAdd) {
+                result = model.add(a, b);
+            } else if (e.getSource() == view.btnSub) {
+                result = model.subtract(a, b);
+            } else if (e.getSource() == view.btnMul) {
+                result = model.multiply(a, b);
+            } else {
+                result = model.divide(a, b);
+            }
+
+            if (!Double.isFinite(result)) {
+                throw new ArithmeticException(
+                        "Result is outside the supported range.");
+            }
+
+            view.txtResult.setText(String.valueOf(result));
+
+        } catch (NumberFormatException ex) {
+            showError("Please enter valid numbers.");
+        } catch (ArithmeticException |
+                 IllegalArgumentException ex) {
+            showError(ex.getMessage());
+        }
+    }
+
+    private void showError(String message) {
+        view.txtResult.setText("");
+        JOptionPane.showMessageDialog(
+                view, message, "Calculation Error",
+                JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+public class Main {
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(
+                        UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ignored) {
+                // Use default Swing appearance.
+            }
+
+            CalculatorModel model = new CalculatorModel();
+            CalculatorView view = new CalculatorView();
+
+            new CalculatorController(view, model);
+            view.setVisible(true);
+        });
+    }
+}
+

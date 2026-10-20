@@ -1,0 +1,200 @@
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import javax.swing.*;
+
+class StudentRegistration extends JFrame {
+
+    private final JTextField txtName = new JTextField(20);
+    private final JTextField txtRoll = new JTextField(20);
+    private final JTextField txtBranch = new JTextField(20);
+
+    private final JRadioButton male = new JRadioButton("Male");
+    private final JRadioButton female = new JRadioButton("Female");
+    private final ButtonGroup genderGroup = new ButtonGroup();
+
+    private final JCheckBox terms =
+            new JCheckBox("I accept the Terms & Conditions");
+
+    public StudentRegistration() {
+        super("Student Registration Form");
+        buildInterface();
+    }
+
+    private void buildInterface() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel content = new JPanel(new BorderLayout(12, 12));
+        content.setBorder(
+                BorderFactory.createEmptyBorder(18, 18, 18, 18));
+
+        JLabel heading = new JLabel("Student Registration");
+        heading.setFont(heading.getFont().deriveFont(20.0f));
+        content.add(heading, BorderLayout.NORTH);
+
+        JPanel fields = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        gbc.insets = new Insets(7, 5, 7, 5);
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        addRow(fields, gbc, 0, "Student Name:", txtName);
+        addRow(fields, gbc, 1, "Roll Number:", txtRoll);
+
+        JPanel genderPanel = new JPanel(
+                new FlowLayout(FlowLayout.LEADING, 8, 0));
+
+        genderGroup.add(male);
+        genderGroup.add(female);
+
+        genderPanel.add(male);
+        genderPanel.add(female);
+
+        addRow(fields, gbc, 2, "Gender:", genderPanel);
+        addRow(fields, gbc, 3, "Branch:", txtBranch);
+
+        gbc.gridy = 4;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+
+        fields.add(terms, gbc);
+        content.add(fields, BorderLayout.CENTER);
+
+        JButton submit = new JButton("Submit");
+        JButton reset = new JButton("Reset");
+
+        submit.addActionListener(this::handleSubmit);
+        reset.addActionListener(this::handleReset);
+
+        JPanel buttons = new JPanel(
+                new FlowLayout(FlowLayout.CENTER, 12, 0));
+
+        buttons.add(submit);
+        buttons.add(reset);
+
+        content.add(buttons, BorderLayout.SOUTH);
+
+        setContentPane(content);
+        getRootPane().setDefaultButton(submit);
+
+        setMinimumSize(new Dimension(360, 330));
+        pack();
+
+        setSize(
+                Math.max(getWidth(), 440),
+                Math.max(getHeight(), 350));
+
+        setLocationRelativeTo(null);
+    }
+
+    private void addRow(
+            JPanel panel,
+            GridBagConstraints gbc,
+            int row,
+            String labelText,
+            java.awt.Component field) {
+
+        gbc.gridy = row;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        gbc.gridx = 0;
+
+        panel.add(new JLabel(labelText), gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+
+        panel.add(field, gbc);
+    }
+
+    private void handleReset(ActionEvent event) {
+        txtName.setText("");
+        txtRoll.setText("");
+        txtBranch.setText("");
+
+        genderGroup.clearSelection();
+        terms.setSelected(false);
+
+        txtName.requestFocusInWindow();
+    }
+
+    private void handleSubmit(ActionEvent event) {
+        String name = txtName.getText().trim();
+        String roll = txtRoll.getText().trim();
+        String branch = txtBranch.getText().trim();
+
+        if (name.isEmpty()) {
+            showValidationMessage(
+                    "Please enter the student name.");
+            txtName.requestFocusInWindow();
+            return;
+        }
+
+        if (roll.isEmpty()) {
+            showValidationMessage(
+                    "Please enter the roll number.");
+            txtRoll.requestFocusInWindow();
+            return;
+        }
+
+        if (!male.isSelected() && !female.isSelected()) {
+            showValidationMessage(
+                    "Please select a gender.");
+            return;
+        }
+
+        if (branch.isEmpty()) {
+            showValidationMessage(
+                    "Please enter the branch.");
+            txtBranch.requestFocusInWindow();
+            return;
+        }
+
+        if (!terms.isSelected()) {
+            showValidationMessage(
+                    "Please accept the Terms & Conditions.");
+            return;
+        }
+
+        String gender = male.isSelected() ? "Male" : "Female";
+
+        String message = "Registration Successful\n\n"
+                + "Name: " + name + "\n"
+                + "Roll Number: " + roll + "\n"
+                + "Gender: " + gender + "\n"
+                + "Branch: " + branch;
+
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Registration Successful",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void showValidationMessage(String message) {
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Input Required",
+                JOptionPane.WARNING_MESSAGE);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(
+                        UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ignored) {
+                // Use Swing's default look and feel.
+            }
+
+            new StudentRegistration().setVisible(true);
+        });
+    }
+}
